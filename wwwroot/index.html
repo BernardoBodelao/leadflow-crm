@@ -4,111 +4,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LeadFlow | Gestão de Leads</title>
+    <meta name="theme-color" content="#101b31">
+    <title>LeadFlow | Gestão inteligente de leads</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <aside class="sidebar">
-        <h2>LeadFlow</h2>
-        <p class="menu-label">MENU PRINCIPAL</p>
-        <a class="active" href="#">Gestão de leads</a>
-        <a href="#">Dashboard</a>
-        <a href="#">Histórico</a>
-    </aside>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <a class="brand" href="#dashboard" data-page="dashboard">
+                <span class="brand-icon">L</span>
+                <span>
+                    <strong>LeadFlow</strong>
+                    <small>Gestão de oportunidades</small>
+                </span>
+            </a>
 
-    <main class="content">
-        <header class="topbar">
-            <div>
-                <h1>Gestão de leads</h1>
-                <p>Gerencie seus contatos e oportunidades de venda.</p>
+            <p class="menu-label">MENU PRINCIPAL</p>
+
+            <nav class="main-nav" aria-label="Navegação principal">
+                <a href="#dashboard" class="nav-link active"
+                   data-page="dashboard">
+                    <span class="nav-icon">▦</span>
+                    Dashboard
+                </a>
+
+                <a href="#leads" class="nav-link" data-page="leads">
+                    <span class="nav-icon">♙</span>
+                    Gestão de leads
+                </a>
+
+                <a href="#historico" class="nav-link" data-page="historico">
+                    <span class="nav-icon">◷</span>
+                    Histórico
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <span class="online-dot"></span>
+                LeadFlow <span>·</span> v1.0
             </div>
-            <button id="novoLeadBtn">+ Novo lead</button>
-        </header>
+        </aside>
 
-        <section class="cards">
-            <article class="card">
-                <p>Total de leads</p>
-                <h2 id="totalLeads">0</h2>
-            </article>
-            <article class="card">
-                <p>Em contato</p>
-                <h2 id="leadsContato">0</h2>
-            </article>
-            <article class="card">
-                <p>Convertidos</p>
-                <h2 id="leadsConvertidos">0</h2>
-            </article>
-            <article class="card">
-                <p>Taxa de conversão</p>
-                <h2 id="taxaConversao">0%</h2>
-            </article>
-        </section>
+        <main class="main-content">
+            <header class="topbar">
+                <div class="breadcrumb">
+                    <span>LeadFlow</span>
+                    <span>/</span>
+                    <strong id="breadcrumbAtual">Dashboard</strong>
+                </div>
 
-        <section class="panel">
-            <h2>Seus contatos</h2>
+                <div class="topbar-info">
+                    <span class="system-status">
+                        <span class="online-dot"></span>
+                        Sistema local
+                    </span>
+                    <div class="user-avatar" aria-hidden="true">LF</div>
+                </div>
+            </header>
 
-            <div class="filters">
-                <input id="pesquisa" type="search"
-                       placeholder="Pesquisar por nome...">
+            <section class="page" id="dashboardPage">
+                <header class="page-header">
+                    <div>
+                        <span class="eyebrow">VISÃO GERAL</span>
+                        <h1>Dashboard</h1>
+                        <p>Acompanhe seus contatos e oportunidades de venda.</p>
+                    </div>
 
-                <select id="filtroStatus">
-                    <option value="">Todos os status</option>
-                    <option>Novo</option>
-                    <option>Em contato</option>
-                    <option>Interessado</option>
-                    <option>Convertido</option>
-                    <option>Perdido</option>
-                </select>
-            </div>
+                    <button type="button" id="dashboardNovoLeadBtn">
+                        <span aria-hidden="true">＋</span>
+                        Novo lead
+                    </button>
+                </header>
 
-            <form id="leadForm" class="lead-form" hidden>
-                <h3>Novo lead</h3>
+                <section class="cards" aria-label="Indicadores de leads">
+                    <article class="card card-blue">
+                        <div class="card-top">
+                            <span>Total de leads</span>
+                            <span class="metric-icon">♙</span>
+                        </div>
+                        <h2 id="totalLeads">0</h2>
+                        <p>Contatos cadastrados</p>
+                    </article>
 
-                <label for="nome">Nome</label>
-                <input id="nome" required>
+                    <article class="card card-orange">
+                        <div class="card-top">
+                            <span>Em contato</span>
+                            <span class="metric-icon">☏</span>
+                        </div>
+                        <h2 id="leadsContato">0</h2>
+                        <p>Em acompanhamento</p>
+                    </article>
 
-                <label for="telefone">Telefone</label>
-                <input id="telefone" required>
+                    <article class="card card-green">
+                        <div class="card-top">
+                            <span>Convertidos</span>
+                            <span class="metric-icon">✓</span>
+                        </div>
+                        <h2 id="leadsConvertidos">0</h2>
+                        <p>Oportunidades concluídas</p>
+                    </article>
 
-                <label for="origem">Origem</label>
-                <input id="origem" placeholder="Ex.: Instagram">
+                    <article class="card card-purple">
+                        <div class="card-top">
+                            <span>Taxa de conversão</span>
+                            <span class="metric-icon">↗</span>
+                        </div>
+                        <h2 id="taxaConversao">0%</h2>
+                        <p>Convertidos sobre o total</p>
+                    </article>
+                </section>
 
-                <label for="status">Status</label>
-                <select id="status">
-                    <option>Novo</option>
-                    <option>Em contato</option>
-                    <option>Interessado</option>
-                    <option>Convertido</option>
-                    <option>Perdido</option>
-                </select>
+                <section class="dashboard-grid">
+                    <article class="panel chart-panel">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Leads por status</h2>
+                                <p>Distribuição atual da sua carteira</p>
+                            </div>
+                        </div>
+                        <div id="graficoStatus" class="chart-content">
+                            <p class="empty-state">
+                                Os dados do gráfico aparecerão aqui.
+                            </p>
+                        </div>
+                    </article>
 
-                <button type="submit">Salvar lead</button>
-                <button type="button" id="cancelarBtn" class="secondary">
-                    Cancelar
-                </button>
-                <p id="mensagem"></p>
-            </form>
+                    <article class="panel chart-panel">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Leads por origem</h2>
+                                <p>De onde vêm seus contatos</p>
+                            </div>
+                        </div>
+                        <div id="graficoOrigem" class="chart-content">
+                            <p class="empty-state">
+                                Os dados do gráfico aparecerão aqui.
+                            </p>
+                        </div>
+                    </article>
+                </section>
 
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Cliente</th>
-                            <th>Telefone</th>
-                            <th>Origem</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leadsTabela">
-                        <tr>
-                            <td colspan="5">Carregando leads...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
+                <section class="panel recent-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>Seus contatos</h2>
+                            <p>Pesquise, filtre e gerencie suas oportunidades.</p>
+                        </div>
+                        <button type="button" id="listaNovoLeadBtn"
+                                class="button-secondary">
+                            ＋ Adicionar contato
+                        </button>
+                    </div>
+
+                    <div class="filters">
+                        <label class="search-field">
+                            <span aria-hidden="true">⌕</span>
+                            <input id="pesquisa" type="search"
+                                   placeholder="Pesquisar por nome..."
+                                   aria-label="Pesquisar leads por nome">
+                        </label>
+
+                        <select id="filtroStatus" aria-label="Filtrar por status">
+                            <option value="">Todos os status</option>
+                            <option>Novo</option>
+                            <option>Em contato</option>
+                            <option>Interessado</option>
+                            <option>Convertido</option>
+                            <option>Perdido</option>
+                        </select>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Telefone</th>
+                                    <th>Origem</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leadsTabela1">
+                                <tr>
+                                    <td colspan="5">Carregando leads...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <form id="leadForm" class="lead-form panel" hidden>
+                    <div class="panel-header">
+                        <div>
+                            <h2>Novo lead</h2>
+                            <p>Preencha os dados do contato.</p>
+                        </div>
+                        <button type="button" id="cancelarBtn"
+                                class="button-secondary">Cancelar</button>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label for="nome">Nome *</label>
+                            <input id="nome" name="nome" required
+                                   placeholder="Nome do contato">
+                        </div>
+
+                        <div class="form-field">
+                            <label for="telefone">Telefone *</label>
+                            <input id="telefone" name="telefone" required
+                                   type="tel" placeholder="(00) 00000-0000">
+                        </div>
+
+                        <div class="form-field">
+                            <label for="origem">Origem</label>
+                            <input id="origem" name="origem"
+                                   placeholder="Ex.: Instagram">
+                        </div>
+
+                        <div class="form-field">
+                            <label for="status">Status</label>
+                            <select id="status" name="status">
+                                <option>Novo</option>
+                                <option>Em contato</option>
+                                <option>Interessado</option>
+                                <option>Convertido</option>
+                                <option>Perdido</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit">Salvar lead</button>
+                    </div>
+                    <p id="mensagem" role="status" aria-live="polite"></p>
+                </form>
+            </section>
+
+            
+            <section class="page" id="leadsPage" hidden>
+                <header class="page-header">
+                    <div>
+                        <span class="eyebrow">CARTEIRA DE CONTATOS</span>
+                        <h1>Gestão de leads</h1>
+                        <p>Gerencie seus contatos e acompanhe cada oportunidade.</p>
+                    </div>
+
+                    <button type="button" id="gestaoNovoLeadBtn">
+                        ＋ Novo lead
+                    </button>
+                </header>
+
+                <div class="stats-grid">
+                    <article class="stat-card">
+                        <span>Total de leads</span>
+                        <strong id="gestaoTotal">0</strong>
+                        <small>Contatos cadastrados</small>
+                    </article>
+
+                    <article class="stat-card">
+                        <span>Em contato</span>
+                        <strong id="gestaoEmContato">0</strong>
+                        <small>Em atendimento</small>
+                    </article>
+
+                    <article class="stat-card">
+                        <span>Convertidos</span>
+                        <strong id="gestaoConvertidos">0</strong>
+                        <small>Oportunidades concluídas</small>
+                    </article>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>Todos os leads</h2>
+                            <p>Pesquise, filtre e gerencie seus contatos.</p>
+                        </div>
+                    </div>
+
+                    <div class="filters">
+                        <input
+                            type="search"
+                            id="pesquisa"
+                            placeholder="Buscar por nome..."
+                        >
+
+                        <select id="filtroStatus">
+                            <option value="">Todos os status</option>
+                            <option value="Novo">Novo</option>
+                            <option value="Em contato">Em contato</option>
+                            <option value="Interessado">Interessado</option>
+                            <option value="Convertido">Convertido</option>
+                            <option value="Perdido">Perdido</option>
+                        </select>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Telefone</th>
+                                    <th>Origem</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leadsTabela">
+                                <tr>
+                                    <td colspan="5">Carregando leads...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page" id="historicoPage" hidden>
+                <header class="page-header">
+                    <div>
+                        <span class="eyebrow">ACOMPANHAMENTO</span>
+                        <h1>Histórico</h1>
+                        <p>Em breve, acompanhe ligações, mensagens e retornos.</p>
+                    </div>
+                </header>
+
+                <div class="panel empty-history">
+                    <div class="empty-history-icon">◷</div>
+                    <h2>Seu histórico começa aqui</h2>
+                    <p>
+                        Vamos implementar o registro de interações por lead
+                        e salvar tudo no banco de dados.
+                    </p>
+                    <button type="button" class="button-secondary"
+                            data-page="dashboard">
+                        Voltar ao Dashboard
+                    </button>
+                </div>
+            </section>
+
+            <footer class="app-footer">
+                LeadFlow <span>·</span> Projeto de portfólio
+            </footer>
+        </main>
+    </div>
 
     <script src="script.js"></script>
 </body>

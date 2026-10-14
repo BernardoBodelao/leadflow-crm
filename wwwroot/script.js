@@ -5,62 +5,45 @@ const tabela = document.getElementById("leadsTabela");
 const formulario = document.getElementById("leadForm");
 const mensagem = document.getElementById("mensagem");
 
+
 let leads = [];
 let leadEditando = null;
+
+const campo = (id) => document.getElementById(id);
 
 async function carregarLeads() {
     try {
         const resposta = await fetch(API);
 
         if (!resposta.ok) {
-            throw new Error("Não foi possível consultar os leads.");
+            throw new Error("Erro ao buscar leads na API.");
         }
 
         leads = await resposta.json();
+
         renderizarLeads();
         atualizarDashboard();
+        renderizarGraficos();
     } catch (erro) {
-        tabela.innerHTML =
-            `<tr><td colspan="5">${erro.message}</td></tr>`;
+        console.error("Erro ao carregar leads:", erro);
+
+        tabela.innerHTML = `
+            <tr>
+                <td colspan="5">
+                    Não foi possível carregar os leads.
+                    Verifique se a API está funcionando.
+                </td>
+            </tr>`;
+
+        campo("totalLeads").textContent = "—";
+        campo("leadsContato").textContent = "—";
+        campo("leadsConvertidos").textContent = "—";
+        campo("taxaConversao").textContent = "—";
     }
-}
-
-function renderizarLeads() {
-    const busca = document.getElementById("pesquisa")
-        .value.trim().toLowerCase();
-
-    const statusFiltro =
-        document.getElementById("filtroStatus").value;
-
-    const filtrados = leads.filter(lead =>
-        lead.nome.toLowerCase().includes(busca) &&
-        (!statusFiltro || lead.status === statusFiltro)
-    );
-
-    if (filtrados.length === 0) {
-        tabela.innerHTML =
-            '<tr><td colspan="5">Nenhum lead encontrado.</td></tr>';
-        return;
-    }
-
-    tabela.innerHTML = filtrados.map(lead => `
-        <tr>
-            <td>${escapar(lead.nome)}</td>
-            <td>${escapar(lead.telefone)}</td>
-            <td>${escapar(lead.origem || "-")}</td>
-            <td><span class="status">${escapar(lead.status)}</span></td>
-            <td>
-                <button data-editar="${lead.id}">Editar</button>
-                <button class="secondary" data-excluir="${lead.id}">
-                    Excluir
-                </button>
-            </td>
-        </tr>
-    `).join("");
 }
 
 function escapar(valor) {
-    return String(valor).replace(/[&<>"']/g, caractere => ({
+    return String(valor ?? "").replace(/[&<>"']/g, caractere => ({
         "&": "&amp;",
         "<": "&lt;",
         ">": "&gt;",
@@ -69,41 +52,198 @@ function escapar(valor) {
     })[caractere]);
 }
 
+function renderizarLeads() {
+    const pesquisa = campo("pesquisa").value.trim().toLowerCase();
+    const statusFiltro = campo("filtroStatus").value;
+
+    const filtrados = leads.filter(lead =>
+        (lead.nome || "").toLowerCase().includes(pesquisa) &&
+        (!statusFiltro || lead.status === statusFiltro)
+    );
+
+    if (filtrados.length === 0) {
+        tabela.innerHTML = `
+            <tr>
+                <td colspan="5">Nenhum lead encontrado.</td>
+            </tr>`;
+        return;
+    }
+
+    tabela.innerHTML = filtrados.map(lead => `
+        <tr>
+            <td>${escapar(lead.nome)}</td>
+            <td>${escapar(lead.telefone)}</td>
+            <td>${escapar(lead.origem || "-")}</td>
+            <td>
+                <span class="status status-${classeStatus(lead.status)}">
+                    ${escapar(lead.status)}
+                </span>
+            </td>
+            <td>
+                <button type="button" data-editar="${lead.id}">
+                    Editar
+                </button>
+                <button type="button" class="secondary"
+                    data-excluir="${lead.id}">
+                    Excluir
+                </button>
+            </td>
+        </tr>
+    `).join("");
+}
+
+function classeStatus(status) {
+    const classes = {
+        "Novo": "novo",
+        "Em contato": "contato",
+        "Interessado": "interessado",
+        "Convertido": "convertido",
+        "Perdido": "perdido"
+    };
+
+    return classes[status] || "novo";
+}
+
 function atualizarDashboard() {
     const total = leads.length;
     const contato = leads.filter(l => l.status === "Em contato").length;
     const convertidos = leads.filter(l => l.status === "Convertido").length;
+    const gestaoTotal = campo("gestaoTotal");
+    const gestaoEmContato = campo("gestaoEmContato");
+    const gestaoConvertidos = campo("gestaoConvertidos");
 
-    document.getElementById("totalLeads").textContent = total;
-    document.getElementById("leadsContato").textContent = contato;
-    document.getElementById("leadsConvertidos").textContent = convertidos;
+    if (gestaoTotal) gestaoTotal.textContent = total;
+    if (gestaoEmContato) gestaoEmContato.textContent = contato;
+    if (gestaoConvertidos) gestaoConvertidos.textContent = convertidos;
 
-    document.getElementById("taxaConversao").textContent =
-        total === 0 ? "0%" : `${(convertidos / total * 100).toFixed(1)}%`;
+    campo("totalLeads").textContent = total;
+    campo("leadsContato").textContent = contato;
+    campo("leadsConvertidos").textContent = convertidos;
+
+    campo("taxaConversao").textContent = total === 0
+        ? "0%"
+        : `${(convertidos / total * 100).toFixed(1)}%`;
 }
 
-document.getElementById("novoLeadBtn").addEventListener("click", () => {
-    leadEditando = null;
+function renderizarGraficos() {
+    const graficoStatus = campo("graficoStatus");
+    const graficoOrigem = campo("graficoOrigem");
+
+    if (!graficoStatus || !graficoOrigem) return;
+
+    const status = ["Novo", "Em contato", "Interessado", "Convertido", "Perdido"];
+
+    graficoStatus.innerHTML = status.map(nome => {
+        const quantidade = leads.filter(l => l.status === nome).length;
+        const percentual = leads.length
+            ? quantidade / leads.length * 100
+            : 0;
+
+        return `
+            <div class="chart-row">
+                <span class="chart-label">${escapar(nome)}</span>
+                <div class="chart-track">
+                    <div class="chart-bar"
+                         style="width: ${percentual}%"></div>
+                </div>
+                <strong>${quantidade}</strong>
+            </div>`;
+    }).join("");
+
+    const origens = {};
+
+    leads.forEach(lead => {
+        const origem = lead.origem?.trim() || "Não informada";
+        origens[origem] = (origens[origem] || 0) + 1;
+    });
+
+    const listaOrigens = Object.entries(origens)
+        .sort((a, b) => b[1] - a[1]);
+
+    graficoOrigem.innerHTML = listaOrigens.length
+        ? listaOrigens.map(([origem, quantidade]) => {
+            const percentual = leads.length
+                ? quantidade / leads.length * 100
+                : 0;
+
+            return `
+                <div class="chart-row">
+                    <span class="chart-label">${escapar(origem)}</span>
+                    <div class="chart-track">
+                        <div class="chart-bar"
+                             style="width: ${percentual}%"></div>
+                    </div>
+                    <strong>${quantidade}</strong>
+                </div>`;
+        }).join("")
+        : "<p>Nenhuma origem cadastrada.</p>";
+}
+
+function abrirFormulario(lead = null) {
+    leadEditando = lead ? lead.id : null;
+
+    // Descobre em qual página o usuário está.
+    const paginaAtiva = document.querySelector(".page:not([hidden])");
+    const formularioPagina = formulario.closest(".page");
+
+    // Se o formulário estiver em outra página, mostra a página dele.
+    if (formularioPagina && paginaAtiva !== formularioPagina) {
+        document.querySelectorAll(".page").forEach(secao => {
+            secao.hidden = secao !== formularioPagina;
+        });
+
+        document.querySelectorAll(".main-nav [data-page]").forEach(link => {
+            link.classList.toggle(
+                "active",
+                link.dataset.page === formularioPagina.id.replace("Page", "")
+            );
+        });
+    }
+
     formulario.reset();
-    formulario.querySelector("h3").textContent = "Novo lead";
-    formulario.querySelector('button[type="submit"]').textContent = "Salvar lead";
+
+    campo("nome").value = lead?.nome || "";
+    campo("telefone").value = lead?.telefone || "";
+    campo("origem").value = lead?.origem || "";
+    campo("status").value = lead?.status || "Novo";
+
+    formulario.querySelector("h2").textContent =
+        lead ? "Editar lead" : "Novo lead";
+
+    formulario.querySelector('button[type="submit"]').textContent =
+        lead ? "Salvar alterações" : "Salvar lead";
+
     mensagem.textContent = "";
     formulario.hidden = false;
-});
 
-document.getElementById("cancelarBtn").addEventListener("click", () => {
+    formulario.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+function fecharFormulario() {
     formulario.hidden = true;
     leadEditando = null;
+    mensagem.textContent = "";
+}
+
+document.querySelectorAll(
+    "#dashboardNovoLeadBtn, #listaNovoLeadBtn, #gestaoNovoLeadBtn"
+).forEach(botao => {
+    botao.addEventListener("click", () => abrirFormulario());
 });
+
+campo("cancelarBtn").addEventListener("click", fecharFormulario);
 
 formulario.addEventListener("submit", async evento => {
     evento.preventDefault();
 
     const dados = {
-        nome: document.getElementById("nome").value.trim(),
-        telefone: document.getElementById("telefone").value.trim(),
-        origem: document.getElementById("origem").value.trim(),
-        status: document.getElementById("status").value
+        nome: campo("nome").value.trim(),
+        telefone: campo("telefone").value.trim(),
+        origem: campo("origem").value.trim(),
+        status: campo("status").value
     };
 
     try {
@@ -117,12 +257,18 @@ formulario.addEventListener("submit", async evento => {
         );
 
         if (!resposta.ok) {
-            const erro = await resposta.json();
-            throw new Error(erro.mensagem || "Não foi possível salvar.");
+            let erro = {};
+
+            try {
+                erro = await resposta.json();
+            } catch {
+                // Mantém a mensagem padrão se a API não retornar JSON.
+            }
+
+            throw new Error(erro.mensagem || "Não foi possível salvar o lead.");
         }
 
-        formulario.hidden = true;
-        leadEditando = null;
+        fecharFormulario();
         await carregarLeads();
     } catch (erro) {
         mensagem.textContent = erro.message;
@@ -130,31 +276,24 @@ formulario.addEventListener("submit", async evento => {
 });
 
 tabela.addEventListener("click", async evento => {
-    const editarId = evento.target.dataset.editar;
-    const excluirId = evento.target.dataset.excluir;
+    const botaoEditar = evento.target.closest("[data-editar]");
+    const botaoExcluir = evento.target.closest("[data-excluir]");
 
-    if (editarId) {
-        const lead = leads.find(l => l.id === Number(editarId));
-        if (!lead) return;
+    if (botaoEditar) {
+        const id = Number(botaoEditar.dataset.editar);
+        const lead = leads.find(l => l.id === id);
 
-        leadEditando = lead.id;
-
-        document.getElementById("nome").value = lead.nome;
-        document.getElementById("telefone").value = lead.telefone;
-        document.getElementById("origem").value = lead.origem;
-        document.getElementById("status").value = lead.status;
-
-        formulario.querySelector("h3").textContent = "Editar lead";
-        formulario.querySelector('button[type="submit"]').textContent = "Salvar alterações";
-        mensagem.textContent = "";
-        formulario.hidden = false;
+        if (lead) abrirFormulario(lead);
+        return;
     }
 
-    if (excluirId) {
+    if (botaoExcluir) {
+        const id = Number(botaoExcluir.dataset.excluir);
+
         if (!confirm("Deseja realmente excluir este lead?")) return;
 
         try {
-            const resposta = await fetch(`${API}/${excluirId}`, {
+            const resposta = await fetch(`${API}/${id}`, {
                 method: "DELETE"
             });
 
@@ -169,10 +308,31 @@ tabela.addEventListener("click", async evento => {
     }
 });
 
-document.getElementById("pesquisa")
-    .addEventListener("input", renderizarLeads);
+campo("pesquisa").addEventListener("input", renderizarLeads);
+campo("filtroStatus").addEventListener("change", renderizarLeads);
 
-document.getElementById("filtroStatus")
-    .addEventListener("change", renderizarLeads);
+document.querySelectorAll(".main-nav [data-page]").forEach(link => {
+    link.addEventListener("click", evento => {
+        evento.preventDefault();
+
+        const pagina = link.dataset.page;
+
+        document.querySelectorAll(".page").forEach(secao => {
+            secao.hidden = secao.id !== `${pagina}Page`;
+        });
+
+        document.querySelectorAll(".main-nav [data-page]").forEach(item => {
+            item.classList.toggle("active", item === link);
+        });
+
+        const titulos = {
+            dashboard: "Dashboard",
+            leads: "Gestão de leads",
+            historico: "Histórico"
+        };
+
+        campo("breadcrumbAtual").textContent = titulos[pagina] || "Dashboard";
+    });
+});
 
 carregarLeads();
