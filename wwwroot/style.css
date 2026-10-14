@@ -1003,3 +1003,68 @@ td button.secondary {
         animation-duration: 0.01ms !important;
     }
 }
+/* Histórico de atividades */
+
+.historico-stats {
+    margin-bottom: 24px;
+}
+
+.historico-panel {
+    margin-top: 8px;
+}
+
+.historico-filtros {
+    display: flex;
+    gap: 12px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.historico-filtros .search-box {
+    flex: 1;
+    min-width: 220px;
+}
+
+.historico-filtros input,
+.historico-filtros select {
+    width: 100%;
+    min-height: 42px;
+}
+
+.historico-mensagem {
+    margin: 12px 0;
+    color: var(--text-secondary, #777);
+    font-size: 13px;
+}
+
+.historico-acao {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 6px;
+    background: var(--background-secondary, #f0f2f5);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+#historicoTabela td {
+    vertical-align: middle;
+}
+
+@media (max-width: 700px) {
+    .historico-filtros {
+        flex-direction: column;
+    }
+
+    .historico-filtros .search-box {
+        min-width: 0;
+    }
+
+    .historico-panel .table-container {
+        overflow-x: auto;
+    }
+
+    #historicoTabela {
+        min-width: 650px;
+    }
+}

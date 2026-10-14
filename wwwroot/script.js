@@ -1,7 +1,8 @@
 
 const API = "/api/leads";
 
-const tabela = document.getElementById("leadsTabela");
+const tabelaDashboard = document.getElementById("leadsTabelaDashboard");
+const tabelaGestao = document.getElementById("leadsTabelaGestao");
 const formulario = document.getElementById("leadForm");
 const mensagem = document.getElementById("mensagem");
 
@@ -53,23 +54,40 @@ function escapar(valor) {
 }
 
 function renderizarLeads() {
-    const pesquisa = campo("pesquisa").value.trim().toLowerCase();
-    const statusFiltro = campo("filtroStatus").value;
+    const pesquisa = (
+        document.getElementById("pesquisa")?.value || ""
+    ).trim().toLowerCase();
+
+    const statusFiltro =
+        document.getElementById("filtroStatus")?.value || "";
 
     const filtrados = leads.filter(lead =>
         (lead.nome || "").toLowerCase().includes(pesquisa) &&
         (!statusFiltro || lead.status === statusFiltro)
     );
 
-    if (filtrados.length === 0) {
-        tabela.innerHTML = `
-            <tr>
-                <td colspan="5">Nenhum lead encontrado.</td>
-            </tr>`;
+    const tabelas = [
+        document.getElementById("leadsTabelaDashboard"),
+        document.getElementById("leadsTabelaGestao")
+    ].filter(Boolean);
+
+    if (tabelas.length === 0) {
+        console.error("Nenhuma tabela de leads foi encontrada no HTML.");
         return;
     }
 
-    tabela.innerHTML = filtrados.map(lead => `
+    if (filtrados.length === 0) {
+        tabelas.forEach(tabela => {
+            tabela.innerHTML = `
+                <tr>
+                    <td colspan="5">Nenhum lead encontrado.</td>
+                </tr>`;
+        });
+
+        return;
+    }
+
+    const linhas = filtrados.map(lead => `
         <tr>
             <td>${escapar(lead.nome)}</td>
             <td>${escapar(lead.telefone)}</td>
@@ -83,13 +101,19 @@ function renderizarLeads() {
                 <button type="button" data-editar="${lead.id}">
                     Editar
                 </button>
-                <button type="button" class="secondary"
+                <button
+                    type="button"
+                    class="secondary"
                     data-excluir="${lead.id}">
                     Excluir
                 </button>
             </td>
         </tr>
     `).join("");
+
+    tabelas.forEach(tabela => {
+        tabela.innerHTML = linhas;
+    });
 }
 
 function classeStatus(status) {
@@ -275,7 +299,7 @@ formulario.addEventListener("submit", async evento => {
     }
 });
 
-tabela.addEventListener("click", async evento => {
+async function tratarCliqueTabela(evento) {
     const botaoEditar = evento.target.closest("[data-editar]");
     const botaoExcluir = evento.target.closest("[data-excluir]");
 
@@ -306,7 +330,15 @@ tabela.addEventListener("click", async evento => {
             alert(erro.message);
         }
     }
-});
+}
+
+if (tabelaDashboard) {
+    tabelaDashboard.addEventListener("click", tratarCliqueTabela);
+}
+
+if (tabelaGestao) {
+    tabelaGestao.addEventListener("click", tratarCliqueTabela);
+}
 
 campo("pesquisa").addEventListener("input", renderizarLeads);
 campo("filtroStatus").addEventListener("change", renderizarLeads);
@@ -336,3 +368,174 @@ document.querySelectorAll(".main-nav [data-page]").forEach(link => {
 });
 
 carregarLeads();
+
+// ========================================
+// HISTÓRICO DE ATIVIDADES
+// ========================================
+
+let registrosHistorico = [];
+
+async function carregarHistorico() {
+    const tabela = document.getElementById("historicoTabela");
+    const mensagem = document.getElementById("mensagemHistorico");
+
+    if (!tabela || !mensagem) return;
+
+    mensagem.textContent = "Carregando histórico...";
+    tabela.innerHTML = `
+        <tr>
+            <td colspan="4">Carregando registros...</td>
+        </tr>
+    `;
+
+    try {
+        const resposta = await fetch("/api/historico");
+
+        if (!resposta.ok) {
+            throw new Error("Não foi possível consultar o histórico.");
+        }
+
+        registrosHistorico = await resposta.json();
+
+        atualizarIndicadoresHistorico();
+        renderizarHistorico();
+    } catch (erro) {
+        console.error("Erro ao carregar histórico:", erro);
+
+        tabela.innerHTML = `
+            <tr>
+                <td colspan="4">Não foi possível carregar os registros.</td>
+            </tr>
+        `;
+
+        mensagem.textContent =
+            "Ocorreu um erro ao consultar o histórico. Tente novamente.";
+    }
+}
+
+function atualizarIndicadoresHistorico() {
+    const total = registrosHistorico.length;
+
+    const cadastros = registrosHistorico.filter(
+        registro => registro.acao === "Cadastro"
+    ).length;
+
+    const alteracoes = registrosHistorico.filter(
+        registro =>
+            registro.acao === "Edição" ||
+            registro.acao === "Alteração de status" ||
+            registro.acao === "Alteração de nome"
+    ).length;
+
+    const exclusoes = registrosHistorico.filter(
+        registro => registro.acao === "Exclusão"
+    ).length;
+
+    document.getElementById("historicoTotal").textContent = total;
+    document.getElementById("historicoCadastros").textContent = cadastros;
+    document.getElementById("historicoAlteracoes").textContent = alteracoes;
+    document.getElementById("historicoExclusoes").textContent = exclusoes;
+}
+
+function renderizarHistorico() {
+    const tabela = document.getElementById("historicoTabela");
+    const mensagem = document.getElementById("mensagemHistorico");
+
+    if (!tabela || !mensagem) return;
+
+    const pesquisa = (
+        document.getElementById("pesquisaHistorico")?.value || ""
+    ).trim().toLowerCase();
+
+    const acaoSelecionada =
+        document.getElementById("filtroAcaoHistorico")?.value || "";
+
+    const filtrados = registrosHistorico.filter(registro => {
+        const nome = registro.nomeLead || "";
+        const descricao = registro.descricao || "";
+        const acao = registro.acao || "";
+
+        const correspondePesquisa =
+            nome.toLowerCase().includes(pesquisa) ||
+            descricao.toLowerCase().includes(pesquisa);
+
+        const correspondeAcao =
+            !acaoSelecionada || acao === acaoSelecionada;
+
+        return correspondePesquisa && correspondeAcao;
+    });
+
+    if (filtrados.length === 0) {
+        tabela.innerHTML = `
+            <tr>
+                <td colspan="4">Nenhuma atividade encontrada.</td>
+            </tr>
+        `;
+
+        mensagem.textContent = registrosHistorico.length === 0
+            ? "Ainda não há atividades registradas."
+            : "Nenhuma atividade corresponde aos filtros selecionados.";
+
+        return;
+    }
+
+    tabela.innerHTML = filtrados.map(registro => {
+        const data = new Date(registro.dataHora);
+
+        const dataFormatada = Number.isNaN(data.getTime())
+            ? "Data indisponível"
+            : data.toLocaleString("pt-BR");
+
+        const nome = escaparHTML(registro.nomeLead || "Lead não identificado");
+        const acao = escaparHTML(registro.acao || "Atividade");
+        const descricao = escaparHTML(registro.descricao || "Sem descrição");
+
+        return `
+            <tr>
+                <td>${dataFormatada}</td>
+                <td><strong>${nome}</strong></td>
+                <td>
+                    <span class="historico-acao">${acao}</span>
+                </td>
+                <td>${descricao}</td>
+            </tr>
+        `;
+    }).join("");
+
+    mensagem.textContent =
+        `${filtrados.length} atividade(s) encontrada(s).`;
+}
+
+// Evita interpretar nomes e descrições como código HTML.
+function escaparHTML(valor) {
+    return String(valor).replace(/[&<>"']/g, caractere => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[caractere]);
+}
+
+// Filtros e atualização manual.
+document.getElementById("pesquisaHistorico")?.addEventListener(
+    "input",
+    renderizarHistorico
+);
+
+document.getElementById("filtroAcaoHistorico")?.addEventListener(
+    "change",
+    renderizarHistorico
+);
+
+document.getElementById("atualizarHistoricoBtn")?.addEventListener(
+    "click",
+    carregarHistorico
+);
+
+// Carrega os dados sempre que a página Histórico for aberta.
+document.querySelectorAll('[data-page="historico"]').forEach(botao => {
+    botao.addEventListener("click", () => {
+        carregarHistorico();
+    });
+});

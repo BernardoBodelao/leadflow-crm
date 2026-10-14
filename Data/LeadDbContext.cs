@@ -1,4 +1,3 @@
-
 using GestaoLeads.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,4 +11,6 @@ public class LeadDbContext : DbContext
     }
 
     public DbSet<Lead> Leads => Set<Lead>();
+
+    public DbSet<LeadHistorico> Historicos => Set<LeadHistorico>();
 }

@@ -23,11 +23,11 @@ string[] statusPermitidos =
     "Perdido"
 };
 
-// Consultar todos os leads
+// Consulta todos os leads
 app.MapGet("/api/leads", async (LeadDbContext db) =>
     await db.Leads.OrderBy(l => l.Id).ToListAsync());
 
-// Consultar um lead pelo ID
+// Consulta um lead pelo ID
 app.MapGet("/api/leads/{id:int}", async (int id, LeadDbContext db) =>
 {
     var lead = await db.Leads.FindAsync(id);
@@ -37,7 +37,14 @@ app.MapGet("/api/leads/{id:int}", async (int id, LeadDbContext db) =>
         : Results.Ok(lead);
 });
 
-// Cadastrar um lead
+// Consulta o histórico de atividades
+app.MapGet("/api/historico", async (LeadDbContext db) =>
+    await db.Historicos
+        .OrderByDescending(h => h.DataHora)
+        .ThenByDescending(h => h.Id)
+        .ToListAsync());
+
+// Cadastra um lead
 app.MapPost("/api/leads", async (
     CriarLeadRequest request,
     LeadDbContext db) =>
@@ -72,10 +79,20 @@ app.MapPost("/api/leads", async (
     db.Leads.Add(lead);
     await db.SaveChangesAsync();
 
+    db.Historicos.Add(new LeadHistorico
+    {
+        LeadId = lead.Id,
+        NomeLead = lead.Nome,
+        Acao = "Cadastro",
+        Descricao = $"Lead {lead.Nome} cadastrado."
+    });
+
+    await db.SaveChangesAsync();
+
     return Results.Created($"/api/leads/{lead.Id}", lead);
 });
 
-// Editar um lead
+// Edita um lead
 app.MapPut("/api/leads/{id:int}", async (
     int id,
     CriarLeadRequest request,
@@ -104,6 +121,9 @@ app.MapPut("/api/leads/{id:int}", async (
         });
     }
 
+    var nomeAnterior = lead.Nome;
+    var statusAnterior = lead.Status;
+
     lead.Nome = request.Nome.Trim();
     lead.Telefone = request.Telefone.Trim();
     lead.Origem = request.Origem?.Trim() ?? "";
@@ -111,10 +131,44 @@ app.MapPut("/api/leads/{id:int}", async (
 
     await db.SaveChangesAsync();
 
+    db.Historicos.Add(new LeadHistorico
+    {
+        LeadId = lead.Id,
+        NomeLead = lead.Nome,
+        Acao = "Edição",
+        Descricao = $"Dados do lead {lead.Nome} atualizados."
+    });
+
+    if (statusAnterior != lead.Status)
+    {
+        db.Historicos.Add(new LeadHistorico
+        {
+            LeadId = lead.Id,
+            NomeLead = lead.Nome,
+            Acao = "Alteração de status",
+            Descricao =
+                $"Status alterado de '{statusAnterior}' para '{lead.Status}'."
+        });
+    }
+
+    if (nomeAnterior != lead.Nome)
+    {
+        db.Historicos.Add(new LeadHistorico
+        {
+            LeadId = lead.Id,
+            NomeLead = lead.Nome,
+            Acao = "Alteração de nome",
+            Descricao =
+                $"Nome alterado de '{nomeAnterior}' para '{lead.Nome}'."
+        });
+    }
+
+    await db.SaveChangesAsync();
+
     return Results.Ok(lead);
 });
 
-// Excluir um lead
+// Exclui um lead e preserva o registro no histórico
 app.MapDelete("/api/leads/{id:int}", async (
     int id,
     LeadDbContext db) =>
@@ -124,7 +178,16 @@ app.MapDelete("/api/leads/{id:int}", async (
     if (lead is null)
         return Results.NotFound();
 
+    db.Historicos.Add(new LeadHistorico
+    {
+        LeadId = lead.Id,
+        NomeLead = lead.Nome,
+        Acao = "Exclusão",
+        Descricao = $"Lead {lead.Nome} excluído."
+    });
+
     db.Leads.Remove(lead);
+
     await db.SaveChangesAsync();
 
     return Results.NoContent();

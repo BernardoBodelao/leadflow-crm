@@ -185,7 +185,7 @@
                                     <th>Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="leadsTabela1">
+                            <tbody id="leadsTabelaDashboard">
                                 <tr>
                                     <td colspan="5">Carregando leads...</td>
                                 </tr>
@@ -312,7 +312,7 @@
                                     <th>Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="leadsTabela">
+                            <tbody id="leadsTabelaGestao">
                                 <tr>
                                     <td colspan="5">Carregando leads...</td>
                                 </tr>
@@ -326,22 +326,90 @@
                 <header class="page-header">
                     <div>
                         <span class="eyebrow">ACOMPANHAMENTO</span>
-                        <h1>Histórico</h1>
-                        <p>Em breve, acompanhe ligações, mensagens e retornos.</p>
+                        <h1>Histórico de atividades</h1>
+                        <p>Acompanhe as ações realizadas nos leads do seu CRM.</p>
                     </div>
+
+                    <button type="button" class="button-secondary" id="atualizarHistoricoBtn">
+                        ↻ Atualizar histórico
+                    </button>
                 </header>
 
-                <div class="panel empty-history">
-                    <div class="empty-history-icon">◷</div>
-                    <h2>Seu histórico começa aqui</h2>
-                    <p>
-                        Vamos implementar o registro de interações por lead
-                        e salvar tudo no banco de dados.
+                <div class="stats-grid historico-stats">
+                    <article class="stat-card">
+                        <span class="stat-label">Total de atividades</span>
+                        <strong id="historicoTotal">0</strong>
+                        <span class="stat-description">Registros encontrados</span>
+                    </article>
+
+                    <article class="stat-card">
+                        <span class="stat-label">Cadastros</span>
+                        <strong id="historicoCadastros">0</strong>
+                        <span class="stat-description">Leads cadastrados</span>
+                    </article>
+
+                    <article class="stat-card">
+                        <span class="stat-label">Alterações</span>
+                        <strong id="historicoAlteracoes">0</strong>
+                        <span class="stat-description">Edições e mudanças de status</span>
+                    </article>
+
+                    <article class="stat-card">
+                        <span class="stat-label">Exclusões</span>
+                        <strong id="historicoExclusoes">0</strong>
+                        <span class="stat-description">Leads excluídos</span>
+                    </article>
+                </div>
+
+                <div class="panel historico-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>Registro de atividades</h2>
+                            <p>Consulte as últimas movimentações registradas no sistema.</p>
+                        </div>
+                    </div>
+
+                    <div class="filters historico-filtros">
+                        <div class="search-box">
+                            <input
+                                type="search"
+                                id="pesquisaHistorico"
+                                placeholder="Pesquisar por nome ou descrição..."
+                                aria-label="Pesquisar no histórico"
+                            >
+                        </div>
+
+                        <select id="filtroAcaoHistorico" aria-label="Filtrar por ação">
+                            <option value="">Todas as ações</option>
+                            <option value="Cadastro">Cadastro</option>
+                            <option value="Edição">Edição</option>
+                            <option value="Alteração de status">Alteração de status</option>
+                            <option value="Alteração de nome">Alteração de nome</option>
+                            <option value="Exclusão">Exclusão</option>
+                        </select>
+                    </div>
+
+                    <p id="mensagemHistorico" class="historico-mensagem" role="status">
+                        Carregando histórico...
                     </p>
-                    <button type="button" class="button-secondary"
-                            data-page="dashboard">
-                        Voltar ao Dashboard
-                    </button>
+
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Data e hora</th>
+                                    <th>Lead</th>
+                                    <th>Ação</th>
+                                    <th>Descrição</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historicoTabela">
+                                <tr>
+                                    <td colspan="4">Carregando registros...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
