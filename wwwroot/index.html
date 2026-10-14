@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeadFlow | Gestão de Leads</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <h2>LeadFlow</h2>
+        <p class="menu-label">MENU PRINCIPAL</p>
+        <a class="active" href="#">Gestão de leads</a>
+        <a href="#">Dashboard</a>
+        <a href="#">Histórico</a>
+    </aside>
+
+    <main class="content">
+        <header class="topbar">
+            <div>
+                <h1>Gestão de leads</h1>
+                <p>Gerencie seus contatos e oportunidades de venda.</p>
+            </div>
+            <button id="novoLeadBtn">+ Novo lead</button>
+        </header>
+
+        <section class="cards">
+            <article class="card">
+                <p>Total de leads</p>
+                <h2 id="totalLeads">0</h2>
+            </article>
+            <article class="card">
+                <p>Em contato</p>
+                <h2 id="leadsContato">0</h2>
+            </article>
+            <article class="card">
+                <p>Convertidos</p>
+                <h2 id="leadsConvertidos">0</h2>
+            </article>
+            <article class="card">
+                <p>Taxa de conversão</p>
+                <h2 id="taxaConversao">0%</h2>
+            </article>
+        </section>
+
+        <section class="panel">
+            <h2>Seus contatos</h2>
+
+            <div class="filters">
+                <input id="pesquisa" type="search"
+                       placeholder="Pesquisar por nome...">
+
+                <select id="filtroStatus">
+                    <option value="">Todos os status</option>
+                    <option>Novo</option>
+                    <option>Em contato</option>
+                    <option>Interessado</option>
+                    <option>Convertido</option>
+                    <option>Perdido</option>
+                </select>
+            </div>
+
+            <form id="leadForm" class="lead-form" hidden>
+                <h3>Novo lead</h3>
+
+                <label for="nome">Nome</label>
+                <input id="nome" required>
+
+                <label for="telefone">Telefone</label>
+                <input id="telefone" required>
+
+                <label for="origem">Origem</label>
+                <input id="origem" placeholder="Ex.: Instagram">
+
+                <label for="status">Status</label>
+                <select id="status">
+                    <option>Novo</option>
+                    <option>Em contato</option>
+                    <option>Interessado</option>
+                    <option>Convertido</option>
+                    <option>Perdido</option>
+                </select>
+
+                <button type="submit">Salvar lead</button>
+                <button type="button" id="cancelarBtn" class="secondary">
+                    Cancelar
+                </button>
+                <p id="mensagem"></p>
+            </form>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Telefone</th>
+                            <th>Origem</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leadsTabela">
+                        <tr>
+                            <td colspan="5">Carregando leads...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
